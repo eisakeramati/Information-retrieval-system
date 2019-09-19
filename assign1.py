@@ -5,8 +5,12 @@ Created on Mon Sep 16 20:25:25 2019
 @author: eisak
 """
 from nltk.stem import PorterStemmer
-from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.tokenize import word_tokenize
 
+
+########################################
+#SECTION 0: Helping functions and classes
+########################################
 def arranger2(input_list, index):
     string = ""
     while ".B" not in input_list[index]:
@@ -38,6 +42,24 @@ def stemmer(input_list):
     for word in input_list:
         output.append(ps.stem(word))
     return output
+
+class posting:
+    def __init__(self, pos, term_freq, doc_id):
+        self.positions = pos
+        self.TD = term_freq
+        self.ID = doc_id
+
+def position_finder(string, doc):
+    position_list=[]
+    index = doc.find(string)
+    sum = 0
+    while (index != -1):
+        sum = sum + index 
+        position_list.append(sum)
+        sum = sum + len(string)
+        doc = doc[index+len(string): len(doc)]
+        index = doc.find(string)
+    return position_list
 
 ########################################
 #SECTION 1: Storing the input data
@@ -80,48 +102,7 @@ st = " ".join(str(x) for x in full_list[39].get('Abstract'))
 print(st)  
 
 ########################################
-#SECTION 2: creating the df dictionary
-########################################
-dict = {}
-for i in range(len(full_list)):
-    temp = full_list[i].get('Abstract')
-    temp2 = full_list[i].get('Title')
-    if temp is not None:
-        for j in range(len(temp)):
-            num=0
-            word = temp[j]
-            for k in range(len(full_list)):
-                if full_list[k].get('Abstract') is not None:
-                    if word in full_list[k].get('Abstract'):
-                        if word == 'binari':
-                            print(full_list[k].get('ID'))
-                        num = num + 1
-                if full_list[k].get('Title') is not None:
-                    if word in full_list[k].get('Title'):
-                        if word == 'binari':
-                            print(full_list[k].get('ID'))
-                        num = num + 1
-            if word == 'binari':
-                print(num)
-                print('ooooooooooooooooooooooooooo')
-            dict.update({word:num})
-            
-    if temp2 is not None:    
-        for j in range(len(temp2)):
-            num=0
-            word = temp2[j]
-            for k in range(len(full_list)):
-                if full_list[k].get('Title') is not None:
-                    if word in full_list[k].get('Title'):
-                        num = num + 1
-                if full_list[k].get('Abstract') is not None:
-                    if word in full_list[k].get('Abstract'):
-                        num = num + 1
-            dict.update({word:num})
-print(dict)
-
-########################################
-#SECTION 3: creating the postings list
+#SECTION 2: creating the postings list
 ########################################
 word_index_list = []
 for i in range(len(full_list)):
@@ -135,25 +116,7 @@ for i in range(len(full_list)):
         for j in range(len(temp2)):
             if temp2[j] not in word_index_list:
                 word_index_list.append(temp2[j])
-print(word_index_list)
-
-class posting:
-    def __init__(self, pos, term_freq, doc_id):
-        self.positions = pos
-        self.TD = term_freq
-        self.ID = doc_id
-
-def position_finder(string, doc):
-    position_list=[]
-    index = doc.find(string)
-    sum = 0
-    while (index != -1):
-        sum = sum + index 
-        position_list.append(sum)
-        sum = sum + len(string)
-        doc = doc[index+len(string): len(doc)]
-        index = doc.find(string)
-    return position_list
+print(word_index_list)    
 
 posting_list = []
 for j in range (len(word_index_list)):
@@ -169,16 +132,11 @@ for j in range (len(word_index_list)):
         if len(temp) != 0:
             posting_list_indiv.append(posting(temp, len(temp), full_list[i].get('ID')))
     posting_list.append(posting_list_indiv)
-    
-
-for i in range(len(posting_list[71])):
-    print(posting_list[71][i].positions)
-    print(posting_list[71][i].TD)
-    print(posting_list[71][i].ID)
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-print(dict.get('binari'))
 
 
+########################################
+#SECTION 3: creating the df dictionary
+########################################      
 dict = {}
 for j in range(len(word_index_list)):
     num = 0
@@ -192,9 +150,13 @@ for j in range(len(word_index_list)):
         if word_index_list[j] in st:
             num = num + 1
     dict.update({word_index_list[j]:num})
-    
+
 print(dict)
-        
+f = open("dictionary.txt", "w")
+f.write(str(dict))
+f.close()
+
+    
         
             
     
