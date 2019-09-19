@@ -6,6 +6,7 @@ Created on Mon Sep 16 20:25:25 2019
 """
 from nltk.stem import PorterStemmer
 from nltk.tokenize import sent_tokenize, word_tokenize
+import numpy as np
 
 def arranger2(input_list, index):
     string = ""
@@ -38,8 +39,10 @@ def stemmer(input_list):
     for word in input_list:
         output.append(ps.stem(word))
     return output
-    
 
+########################################
+#SECTION 1: Storing the input data
+########################################
 full_list = []
 f = open("cacm/cacm.all", "r")
 f_line = f.readlines()
@@ -74,6 +77,89 @@ for i in range(len(full_list)):
     print(full_list[i].get('ID'))
     print(full_list[i].get('Title'))
     print('------------------------------------------')
+st = " ".join(str(x) for x in full_list[39].get('Abstract'))
+print(st)  
+
+########################################
+#SECTION 2: creating the df dictionary
+########################################
+dict = {}
+for i in range(len(full_list)):
+    temp = full_list[i].get('Abstract')
+    temp2 = full_list[i].get('Title')
+    if temp is not None:
+        for j in range(len(temp)):
+            num=0
+            word = temp[j]
+            for k in range(len(full_list)):
+                if full_list[k].get('Abstract') is not None:
+                    if word in full_list[k].get('Abstract'):
+                        num = num + 1
+                if full_list[k].get('Title') is not None:
+                    if word in full_list[k].get('Title'):
+                        num = num + 1
+            dict.update({word:num})
+            
+    if temp2 is not None:    
+        for j in range(len(temp2)):
+            num=0
+            word = temp2[j]
+            for k in range(len(full_list)):
+                if full_list[k].get('Title') is not None:
+                    if word in full_list[k].get('Title'):
+                        num = num + 1
+                if full_list[k].get('Abstract') is not None:
+                    if word in full_list[k].get('Abstract'):
+                        num = num + 1
+            dict.update({word:num})
+print(dict)
+
+########################################
+#SECTION 3: creating the postings list
+########################################
+word_index_list = []
+for i in range(len(full_list)):
+    temp = full_list[i].get('Title')
+    temp2 = full_list[i].get('Abstract')
+    if temp is not None:
+        for j in range(len(temp)):
+            if temp[j] not in word_index_list:
+                word_index_list.append(temp[j])
+    if temp2 is not None:
+        for j in range(len(temp2)):
+            if temp2[j] not in word_index_list:
+                word_index_list.append(temp2[j])
+print(word_index_list)
+
+class posting:
+    def __init__(self, pos, term_freq, doc_id):
+        self.positions = pos
+        self.TD = term_freq
+        self.ID = doc_id
+
+def position_finder(string, doc):
+    position_list=[]
+    index = doc.find(string)
+    sum = 0
+    while (index != -1):
+        sum = sum + index 
+        position_list.append(sum)
+        sum = sum + len(string)
+        doc = doc[index+len(string): len(doc)]
+        index = doc.find(string)
+    return position_list
+            
+a = "string is string.not string perhaps"
+print(position_finder('string', a))
+    
+
+    
+            
+            
+
+
+            
+
 
 
 
