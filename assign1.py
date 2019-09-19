@@ -6,7 +6,6 @@ Created on Mon Sep 16 20:25:25 2019
 """
 from nltk.stem import PorterStemmer
 from nltk.tokenize import sent_tokenize, word_tokenize
-import numpy as np
 
 def arranger2(input_list, index):
     string = ""
@@ -94,10 +93,17 @@ for i in range(len(full_list)):
             for k in range(len(full_list)):
                 if full_list[k].get('Abstract') is not None:
                     if word in full_list[k].get('Abstract'):
+                        if word == 'binari':
+                            print(full_list[k].get('ID'))
                         num = num + 1
                 if full_list[k].get('Title') is not None:
                     if word in full_list[k].get('Title'):
+                        if word == 'binari':
+                            print(full_list[k].get('ID'))
                         num = num + 1
+            if word == 'binari':
+                print(num)
+                print('ooooooooooooooooooooooooooo')
             dict.update({word:num})
             
     if temp2 is not None:    
@@ -148,9 +154,49 @@ def position_finder(string, doc):
         doc = doc[index+len(string): len(doc)]
         index = doc.find(string)
     return position_list
+
+posting_list = []
+for j in range (len(word_index_list)):
+    posting_list_indiv = []
+    for i in range(len(full_list)):
+        if full_list[i].get('Title') is not None and full_list[i].get('Abstract') is not None:
+            st = " ".join(str(x) for x in full_list[i].get('Title')) + " ".join(str(x) for x in full_list[i].get('Abstract'))
+        elif full_list[i].get('Title') is not None and full_list[i].get('Abstract') is None:
+            st = " ".join(str(x) for x in full_list[i].get('Title'))
+        else:
+            st = " ".join(str(x) for x in full_list[i].get('Abstract'))
+        temp = position_finder(word_index_list[j], st)
+        if len(temp) != 0:
+            posting_list_indiv.append(posting(temp, len(temp), full_list[i].get('ID')))
+    posting_list.append(posting_list_indiv)
+    
+
+for i in range(len(posting_list[71])):
+    print(posting_list[71][i].positions)
+    print(posting_list[71][i].TD)
+    print(posting_list[71][i].ID)
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+print(dict.get('binari'))
+
+
+dict = {}
+for j in range(len(word_index_list)):
+    num = 0
+    for i in range(len(full_list)):
+        if full_list[i].get('Title') is not None and full_list[i].get('Abstract') is not None:
+            st = " ".join(str(x) for x in full_list[i].get('Title')) + " ".join(str(x) for x in full_list[i].get('Abstract'))
+        elif full_list[i].get('Title') is not None and full_list[i].get('Abstract') is None:
+            st = " ".join(str(x) for x in full_list[i].get('Title'))
+        else:
+            st = " ".join(str(x) for x in full_list[i].get('Abstract'))
+        if word_index_list[j] in st:
+            num = num + 1
+    dict.update({word_index_list[j]:num})
+    
+print(dict)
+        
+        
             
-a = "string is string.not string perhaps"
-print(position_finder('string', a))
     
 
     
