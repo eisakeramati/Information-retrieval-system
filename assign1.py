@@ -6,7 +6,7 @@ Created on Mon Sep 16 20:25:25 2019
 """
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
-
+import collections
 
 ########################################
 #SECTION 0: Helping functions and classes
@@ -116,6 +116,7 @@ for i in range(len(full_list)):
         for j in range(len(temp2)):
             if temp2[j] not in word_index_list:
                 word_index_list.append(temp2[j])
+word_index_list.sort()
 print(word_index_list)    
 
 posting_list = []
@@ -137,7 +138,7 @@ for j in range (len(word_index_list)):
 ########################################
 #SECTION 3: creating the df dictionary
 ########################################      
-dict = {}
+dict = collections.OrderedDict()
 for j in range(len(word_index_list)):
     num = 0
     for i in range(len(full_list)):
@@ -150,13 +151,30 @@ for j in range(len(word_index_list)):
         if word_index_list[j] in st:
             num = num + 1
     dict.update({word_index_list[j]:num})
-
 print(dict)
-f = open("dictionary.txt", "w")
-f.write(str(dict))
-f.close()
-
     
+########################################
+#SECTION 4: saving the outputs in files
+########################################  
+with open('dictionary.csv', 'w') as f:
+    for key in dict.keys():
+        f.write("%s,%s\n"%(key, dict[key]))
+
+with open('posting_list.txt', 'w') as f:
+    for i in range(len(posting_list)):
+        temp = posting_list[i]
+        for j in range(len(temp)):
+            f.write("%s"%(len(temp[j].positions)))
+            f.write(",")
+            for k in range(len(temp[j].positions)):
+                f.write("%s"%(temp[j].positions[k]))
+                f.write(",")
+            f.write("%s"%(temp[j].TD))
+            f.write(",")
+            f.write("%s"%(temp[j].ID))
+            f.write("-------------------------------------------\n")
+
+
         
             
     
