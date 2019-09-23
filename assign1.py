@@ -128,25 +128,55 @@ def main_func(sw, stm):
             for j in range(len(temp2)):
                 if temp2[j] not in word_index_list:
                     word_index_list.append(temp2[j])
-    word_index_list.sort()   
+    word_index_list.sort() 
     print('first part out')
     posting_list = []
-    for j in range (len(word_index_list)):
-        posting_list_indiv = []
-        for i in range(len(full_list)):
-            if full_list[i].get('Title') is not None and full_list[i].get('Abstract') is not None:
-                st = " ".join(str(x) for x in full_list[i].get('Title')) + " ".join(str(x) for x in full_list[i].get('Abstract'))
-            elif full_list[i].get('Title') is not None and full_list[i].get('Abstract') is None:
-                st = " ".join(str(x) for x in full_list[i].get('Title'))
-            elif full_list[i].get('Abstract') is not None:
-                st = " ".join(str(x) for x in full_list[i].get('Abstract'))
-            else:
-                continue
-            temp = position_finder(word_index_list[j], st)
-            if len(temp) != 0:
-                posting_list_indiv.append(posting(temp, len(temp), full_list[i].get('ID')))
+    for i in range(len(word_index_list)):
+        posting_list_indiv =[]
         posting_list.append(posting_list_indiv)
-    
+#    for j in range (len(word_index_list)):
+#        posting_list_indiv = []
+#        for i in range(len(full_list)):
+#            if full_list[i].get('Title') is not None and full_list[i].get('Abstract') is not None:
+#                st = " ".join(str(x) for x in full_list[i].get('Title')) + " ".join(str(x) for x in full_list[i].get('Abstract'))
+#            elif full_list[i].get('Title') is not None and full_list[i].get('Abstract') is None:
+#                st = " ".join(str(x) for x in full_list[i].get('Title'))
+#            elif full_list[i].get('Abstract') is not None:
+#                st = " ".join(str(x) for x in full_list[i].get('Abstract'))
+#            else:
+#                continue
+#            temp = position_finder(word_index_list[j], st)
+#            if len(temp) != 0:
+#                posting_list_indiv.append(posting(temp, len(temp), full_list[i].get('ID')))
+#        posting_list.append(posting_list_indiv)
+        
+    for i in range(len(full_list)):
+        if full_list[i].get('Title') is not None and full_list[i].get('Abstract') is not None:
+            st = " ".join(str(x) for x in full_list[i].get('Title')) + " ".join(str(x) for x in full_list[i].get('Abstract'))
+        elif full_list[i].get('Title') is not None and full_list[i].get('Abstract') is None:
+            st = " ".join(str(x) for x in full_list[i].get('Title'))
+        elif full_list[i].get('Abstract') is not None:
+            st = " ".join(str(x) for x in full_list[i].get('Abstract'))
+        else:
+            continue
+        stored = []
+        if full_list[i].get('Abstract') is not None:
+            for j in range(len(full_list[i].get('Abstract'))):
+                if full_list[i].get('Abstract')[j] not in stored:
+                    posting_list_indiv = posting_list[word_index_list.index(full_list[i].get('Abstract')[j])]
+                    temp = position_finder(full_list[i].get('Abstract')[j], st)
+                    stored.append(full_list[i].get('Abstract')[j])
+                    if len(temp) != 0:
+                        posting_list_indiv.append(posting(temp, len(temp), full_list[i].get('ID')))
+                        posting_list[word_index_list.index(full_list[i].get('Abstract')[j])] = posting_list_indiv
+        if full_list[i].get('Title') is not None:
+            for j in range(len(full_list[i].get('Title'))):
+                if full_list[i].get('Title')[j] not in stored:
+                    posting_list_indiv = posting_list[word_index_list.index(full_list[i].get('Title')[j])]
+                    temp = position_finder(full_list[i].get('Title')[j], st)
+                    if len(temp) != 0:
+                        posting_list_indiv.append(posting(temp, len(temp), full_list[i].get('ID')))
+                        posting_list[word_index_list.index(full_list[i].get('Title')[j])] = posting_list_indiv
     
     ########################################
     #SECTION 3: creating the df dictionary
@@ -154,19 +184,10 @@ def main_func(sw, stm):
     print('section 3...')    
     dictn = collections.OrderedDict()
     for j in range(len(word_index_list)):
-        num = 0
-        for i in range(len(full_list)):
-            if full_list[i].get('Title') is not None and full_list[i].get('Abstract') is not None:
-                st = " ".join(str(x) for x in full_list[i].get('Title')) + " ".join(str(x) for x in full_list[i].get('Abstract'))
-            elif full_list[i].get('Title') is not None and full_list[i].get('Abstract') is None:
-                st = " ".join(str(x) for x in full_list[i].get('Title'))
-            elif full_list[i].get('Abstract') is not None:
-                st = " ".join(str(x) for x in full_list[i].get('Abstract'))
-            else:
-                continue
-            if word_index_list[j] in st:
-                num = num + 1
+        num = len(posting_list[j])
         dictn.update({word_index_list[j]:num})
+    #print(dictn.get('23'))
+    #print(len(dictn))
         
     ########################################
     #SECTION 4: saving the outputs in files

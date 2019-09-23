@@ -127,10 +127,20 @@ dict = collections.OrderedDict()
 with open('dictionary.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     for row in csv_reader:
-        dict.update({row[0]:row[1]})
+        if len(row)==2:
+            dict.update({row[0]:row[1]})
+        else:
+            st=''
+            for k in range(len(row)-1):
+                st = st + row[k]+","
+            st = st[0:len(st)-1]
+            dict.update({st:row[len(row)-1]})
 
 #query = 'acceler'
-query = 'binari'
+#print(dict)
+#print(len(dict))
+#print
+query = 'binary'
 print(query +":")
 print("This term was seen in "+dict[query]+ " documents.")
 print('-------------------------------------------\n')
