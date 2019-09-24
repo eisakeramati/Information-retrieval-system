@@ -76,7 +76,8 @@ def inside_word(string, doc):
 ########################################
 #SECTION 1: reading the corpus
 ########################################
-print('enter the word.')
+q = raw_input("Enter a word: ")
+
 sw = raw_input("Do you want stop word removal(y/n): ")
 stm = raw_input("Do you want stemming(y/n): ") 
 main_func(sw, stm)
@@ -140,32 +141,78 @@ with open('dictionary.csv') as csv_file:
 #print(dict)
 #print(len(dict))
 #print
-query = 'binary'
+query = q
 print(query +":")
-print("This term was seen in "+dict[query]+ " documents.")
-print('-------------------------------------------\n')
-with open('posting_list.txt') as f:
-    index = 0
-    f_line = f.readlines()
-    for key in dict.keys():
-        if key == query:
-            break
-        index = index + int(dict[key])*2
-
-########################################
-#SECTION 3: output construction
-######################################## 
-flag = index + int(dict[key])*2
-while index < flag:
-    doc_num = str(int(disconnector(f_line[index]))-1)
-    print('Document number '+ str(int(disconnector(f_line[index]))) +" :")
-    print('This term is seen in this document '+ f_line[index][0: position_finder(',', f_line[index])[0]] +' times.')
-    if full_list[int(doc_num)].get('Title') is not None and full_list[int(doc_num)].get('Abstract') is not None:
-        tit = full_list[int(doc_num)].get('Title')
-        abst = full_list[int(doc_num)].get('Abstract')
-        print('Title: ')
-        print(" ".join(str(x) for x in full_list[int(doc_num)].get('Title')) +"\n")
-        if query in tit or inside_word(query, tit)!= -1:
+if dict[query] is not None:
+    print("This term was seen in "+dict[query]+ " documents.")
+    print('-------------------------------------------\n')
+    with open('posting_list.txt') as f:
+        index = 0
+        f_line = f.readlines()
+        for key in dict.keys():
+            if key == query:
+                break
+            index = index + int(dict[key])*2
+    
+    ########################################
+    #SECTION 3: output construction
+    ######################################## 
+    flag = index + int(dict[key])*2
+    while index < flag:
+        doc_num = str(int(disconnector(f_line[index]))-1)
+        print('Document number '+ str(int(disconnector(f_line[index]))) +" :")
+        print('This term is seen in this document '+ f_line[index][0: position_finder(',', f_line[index])[0]] +' times.')
+        if full_list[int(doc_num)].get('Title') is not None and full_list[int(doc_num)].get('Abstract') is not None:
+            tit = full_list[int(doc_num)].get('Title')
+            abst = full_list[int(doc_num)].get('Abstract')
+            print('Title: ')
+            print(" ".join(str(x) for x in full_list[int(doc_num)].get('Title')) +"\n")
+            if query in tit or inside_word(query, tit)!= -1:
+                if query in tit:
+                    point = tit.index(query)
+                else:
+                    point = inside_word(query, tit)
+                if point-1>=0:
+                    if point-6>=0:
+                        st1 = " ".join(str(x) for x in tit[point-6:point])
+                    else:
+                        st1 = " ".join(str(x) for x in tit[0:point])
+                else:
+                    st1 = ""
+                if point + 1 <= len(tit):
+                    if point + 6 <= len(tit):
+                        st2 = " ".join(str(x) for x in tit[point+1:point+ 6])
+                    else:
+                        st2 = " ".join(str(x) for x in tit[point+1:len(tit)])
+                else:
+                    st2 = ""
+                print(st1+ " " +Back.CYAN + tit[point] + Style.RESET_ALL+" " + st2)
+                
+            if query in abst or inside_word(query, abst)!= -1:
+                if query in abst:
+                    point = abst.index(query)
+                else:
+                    point = inside_word(query, abst)
+                if point-1>=0:
+                    if point-6>=0:
+                        st1 = " ".join(str(x) for x in abst[point-6:point])
+                    else:
+                        st1 = " ".join(str(x) for x in abst[0:point])
+                else:
+                    st1 = ""
+                if point + 1 <= len(abst):
+                    if point + 6 <= len(abst):
+                        st2 = " ".join(str(x) for x in abst[point+1:point+ 6])
+                    else:
+                        st2 = " ".join(str(x) for x in abst[point+1:len(abst)])
+                else:
+                    st2 = ""
+                print(st1+" "+ Back.CYAN + abst[point] + Style.RESET_ALL+" " + st2)
+            
+        elif full_list[int(doc_num)].get('Title') is not None and full_list[int(doc_num)].get('Abstract') is None:
+            tit = full_list[int(doc_num)].get('Title')
+            print('Title : ')
+            print(" ".join(str(x) for x in full_list[int(doc_num)].get('Title')) +"\n")
             if query in tit:
                 point = tit.index(query)
             else:
@@ -184,11 +231,11 @@ while index < flag:
                     st2 = " ".join(str(x) for x in tit[point+1:len(tit)])
             else:
                 st2 = ""
-            print(st1+ " " +Back.CYAN + tit[point] + Style.RESET_ALL+" " + st2)
-            
-        if query in abst or inside_word(query, abst)!= -1:
+            print(st1+ " "+Back.CYAN + tit[point] + Style.RESET_ALL+" " + st2)
+        else:
+            abst = full_list[int(doc_num)].get('Abstract')
             if query in abst:
-                point = abst.index(query)
+                point = full_list.index(query)
             else:
                 point = inside_word(query, abst)
             if point-1>=0:
@@ -205,57 +252,14 @@ while index < flag:
                     st2 = " ".join(str(x) for x in abst[point+1:len(abst)])
             else:
                 st2 = ""
-            print(st1+" "+ Back.CYAN + abst[point] + Style.RESET_ALL+" " + st2)
+            print(st1+ " "+Back.CYAN + abst[point]+ Style.RESET_ALL +" " + st2)  
+                
+        print('positions : '+f_line[index][position_finder(',', f_line[index])[0]+1:position_finder(',', f_line[index])[len(position_finder(',', f_line[index]))-2]])
+        print('-------------------------------------------\n')
+        index = index + 2
+else:
+    print('This term is not present in the documents.')
         
-    elif full_list[int(doc_num)].get('Title') is not None and full_list[int(doc_num)].get('Abstract') is None:
-        tit = full_list[int(doc_num)].get('Title')
-        print('Title : ')
-        print(" ".join(str(x) for x in full_list[int(doc_num)].get('Title')) +"\n")
-        if query in tit:
-            point = tit.index(query)
-        else:
-            point = inside_word(query, tit)
-        if point-1>=0:
-            if point-6>=0:
-                st1 = " ".join(str(x) for x in tit[point-6:point])
-            else:
-                st1 = " ".join(str(x) for x in tit[0:point])
-        else:
-            st1 = ""
-        if point + 1 <= len(tit):
-            if point + 6 <= len(tit):
-                st2 = " ".join(str(x) for x in tit[point+1:point+ 6])
-            else:
-                st2 = " ".join(str(x) for x in tit[point+1:len(tit)])
-        else:
-            st2 = ""
-        print(st1+ " "+Back.CYAN + tit[point] + Style.RESET_ALL+" " + st2)
-    else:
-        abst = full_list[int(doc_num)].get('Abstract')
-        if query in abst:
-            point = full_list.index(query)
-        else:
-            point = inside_word(query, abst)
-        if point-1>=0:
-            if point-6>=0:
-                st1 = " ".join(str(x) for x in abst[point-6:point])
-            else:
-                st1 = " ".join(str(x) for x in abst[0:point])
-        else:
-            st1 = ""
-        if point + 1 <= len(abst):
-            if point + 6 <= len(abst):
-                st2 = " ".join(str(x) for x in abst[point+1:point+ 6])
-            else:
-                st2 = " ".join(str(x) for x in abst[point+1:len(abst)])
-        else:
-            st2 = ""
-        print(st1+ " "+Back.CYAN + abst[point]+ Style.RESET_ALL +" " + st2)  
-            
-    print('positions : '+f_line[index][position_finder(',', f_line[index])[0]+1:position_finder(',', f_line[index])[len(position_finder(',', f_line[index]))-2]])
-    print('-------------------------------------------\n')
-    index = index + 2
-    
 
         
         
