@@ -63,6 +63,21 @@ def position_finder(string, doc):
         index = doc.find(string)
     return position_list
 
+def position_finder_list(string, input_list):
+    position_list=[]
+    temp = input_list
+    index = 0
+    if string in input_list:
+        index = input_list.index(string, index)
+        position_list.append(index)
+        temp = input_list[index+1:len(input_list)]
+        while (string in temp):
+            index= index+1
+            index = input_list.index(string, index)
+            position_list.append(index)
+            temp = input_list[index+1:len(input_list)]
+    return position_list
+
 def gen_tokenizer(string):
     return word_tokenize(string.lower())
 
@@ -152,11 +167,15 @@ def main_func(sw, stm):
         
     for i in range(len(full_list)):
         if full_list[i].get('Title') is not None and full_list[i].get('Abstract') is not None:
-            st = " ".join(str(x) for x in full_list[i].get('Title')) + " ".join(str(x) for x in full_list[i].get('Abstract'))
+            #st = " ".join(str(x) for x in full_list[i].get('Title')) + " ".join(str(x) for x in full_list[i].get('Abstract'))
+            st = full_list[i].get('Title')
+            st.extend(full_list[i].get('Abstract'))
         elif full_list[i].get('Title') is not None and full_list[i].get('Abstract') is None:
-            st = " ".join(str(x) for x in full_list[i].get('Title'))
+           # st = " ".join(str(x) for x in full_list[i].get('Title'))
+            st = full_list[i].get('Title')
         elif full_list[i].get('Abstract') is not None:
-            st = " ".join(str(x) for x in full_list[i].get('Abstract'))
+            #st = " ".join(str(x) for x in full_list[i].get('Abstract'))
+            st = full_list[i].get('Abstract')
         else:
             continue
         stored = []
@@ -164,7 +183,8 @@ def main_func(sw, stm):
             for j in range(len(full_list[i].get('Abstract'))):
                 if full_list[i].get('Abstract')[j] not in stored:
                     posting_list_indiv = posting_list[word_index_list.index(full_list[i].get('Abstract')[j])]
-                    temp = position_finder(full_list[i].get('Abstract')[j], st)
+                    #temp = position_finder(full_list[i].get('Abstract')[j], st)
+                    temp = position_finder_list(full_list[i].get('Abstract')[j], st)
                     stored.append(full_list[i].get('Abstract')[j])
                     if len(temp) != 0:
                         posting_list_indiv.append(posting(temp, len(temp), full_list[i].get('ID')))
@@ -173,7 +193,8 @@ def main_func(sw, stm):
             for j in range(len(full_list[i].get('Title'))):
                 if full_list[i].get('Title')[j] not in stored:
                     posting_list_indiv = posting_list[word_index_list.index(full_list[i].get('Title')[j])]
-                    temp = position_finder(full_list[i].get('Title')[j], st)
+                    #temp = position_finder(full_list[i].get('Title')[j], st)
+                    temp = position_finder_list(full_list[i].get('Title')[j], st)
                     if len(temp) != 0:
                         posting_list_indiv.append(posting(temp, len(temp), full_list[i].get('ID')))
                         posting_list[word_index_list.index(full_list[i].get('Title')[j])] = posting_list_indiv

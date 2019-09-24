@@ -12,6 +12,7 @@ from nltk.tokenize import word_tokenize
 from colorama import Style
 from colorama import Back
 from assign1 import main_func
+import time
 
 ########################################
 #SECTION 0: Helping functions and classes
@@ -77,9 +78,13 @@ def inside_word(string, doc):
 #SECTION 1: reading the corpus
 ########################################
 q = raw_input("Enter a word: ")
-
+cons = raw_input("Do you want your query to be stemmed(y/n): ") 
+if cons=='y':
+    ps = PorterStemmer()
+    q = ps.stem(q)
 sw = raw_input("Do you want stop word removal(y/n): ")
 stm = raw_input("Do you want stemming(y/n): ") 
+start = time.time()
 main_func(sw, stm)
 full_list = []
 f = open("cacm/cacm.all", "r")
@@ -143,7 +148,7 @@ with open('dictionary.csv') as csv_file:
 #print
 query = q
 print(query +":")
-if dict[query] is not None:
+if query in dict:
     print("This term was seen in "+dict[query]+ " documents.")
     print('-------------------------------------------\n')
     with open('posting_list.txt') as f:
@@ -259,6 +264,8 @@ if dict[query] is not None:
         index = index + 2
 else:
     print('This term is not present in the documents.')
+    
+print("execution time in seconds: "+ str(time.time()-start))
         
 
         
