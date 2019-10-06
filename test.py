@@ -270,11 +270,14 @@ if use == '1':
         print('This term is not present in the documents.')
 else: 
     words = gen_tokenizer(q)
-    list_mul=[]
+    idf = IDF(dict, len(full_list))
+    a = TFIDF(dict, idf, words)
+    list_mul=collections.OrderedDict()
     for i in range (len(words)):
         query = words[i]
         print(query +":")
         if query in dict:
+            temp_list=[]
             with open('posting_list.txt') as f:
                 index = 0
                 f_line = f.readlines()
@@ -286,26 +289,52 @@ else:
             flag = index + int(dict[key])*2
             while index < flag:
                 doc_num = str(int(disconnector(f_line[index]))-1)
-                if doc_num not in list_mul:
-                    list_mul.append(doc_num)
+                if doc_num not in temp_list:
+                    temp_list.append(doc_num)
                 index = index + 2
-    print(list_mul)
-    score = {}
-    idf = IDF(dict, len(full_list))
-    a = TFIDF(dict, idf, words)
-    for j in range(len(list_mul)):
-        body=[]
-        if full_list[int(list_mul[j])].get('Title') is not None and full_list[int(list_mul[j])].get('Abstract') is not None:
-            body = full_list[int(list_mul[j])].get('Title') + full_list[int(list_mul[j])].get('Abstract')
-        if full_list[int(list_mul[j])].get('Title') is not None and full_list[int(list_mul[j])].get('Abstract') is None:
-            body = full_list[int(list_mul[j])].get('Title')
-        else:
-            body = full_list[int(list_mul[j])].get('Abstract')   
-        b = TFIDF(dict, idf, body)
-        sim = cosine_similarity(a, b)
-        score.update({list_mul[j]:sim})
-        sorted_score = sorted(score.items(), key=operator.itemgetter(1))
-    print(sorted_score)         
+            print('here1')
+            temp_score={}
+            for j in range (len(temp_list)):
+                body=[]
+                if full_list[int(temp_list[j])].get('Title') is not None and full_list[int(temp_list[j])].get('Abstract') is not None:
+                    body = full_list[int(temp_list[j])].get('Title') + full_list[int(temp_list[j])].get('Abstract')
+                if full_list[int(temp_list[j])].get('Title') is not None and full_list[int(temp_list[j])].get('Abstract') is None:
+                    body = full_list[int(temp_list[j])].get('Title')
+                else:
+                    body = full_list[int(temp_list[j])].get('Abstract')
+                b = TFIDF(dict, idf, body)
+                sim = cosine_similarity(a, b)
+                temp_score.update({temp_list[j]:sim})
+            print(temp_score)
+            sorted_score = sorted(temp_score.items(), key=operator.itemgetter(1))
+            print(sorted_score)
+            print('here2')
+            if len(sorted_score)<20:
+                for q in range(0, len(sorted_score)):
+                   (ind, sc) = sorted_score[len(sorted_score)-1-q]
+                   list_mul.update({ind:sc})
+            else:
+                for q in range(0, 20):
+                   (ind, sc) = sorted_score[len(sorted_score)-1-q]
+                   list_mul.update({ind:sc})
+            print(list_mul)
+    
+    print('here3')
+    score = collections.OrderedDict()
+   # for key, value in list_mul.items():
+   #     sorted_score = sorted(score.items(), key=operator.itemgetter(1))
+  #  print(sorted_score[len(sorted_score)-15:len(sorted_score)])
+    sorted_score = sorted(list_mul.items(), key=operator.itemgetter(1))
+    if len(sorted_score)<15:
+        for q in range(0, len(sorted_score)):
+            (ind, sc) = sorted_score[len(sorted_score)-1-q]
+            score.update({ind:sc})
+    else:
+        for q in range(0, 15):
+            (ind, sc) = sorted_score[len(sorted_score)-1-q]
+            score.update({ind:sc})
+    print(score)
+    print(sorted(score.items(), key=operator.itemgetter(1)))
     
 print("execution time in seconds: "+ str(time.time()-start))
         
