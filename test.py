@@ -275,7 +275,6 @@ else:
     list_mul=collections.OrderedDict()
     for i in range (len(words)):
         query = words[i]
-        print(query +":")
         if query in dict:
             temp_list=[]
             with open('posting_list.txt') as f:
@@ -292,7 +291,6 @@ else:
                 if doc_num not in temp_list:
                     temp_list.append(doc_num)
                 index = index + 2
-            print('here1')
             temp_score={}
             for j in range (len(temp_list)):
                 body=[]
@@ -305,10 +303,7 @@ else:
                 b = TFIDF(dict, idf, body)
                 sim = cosine_similarity(a, b)
                 temp_score.update({temp_list[j]:sim})
-            print(temp_score)
             sorted_score = sorted(temp_score.items(), key=operator.itemgetter(1))
-            print(sorted_score)
-            print('here2')
             if len(sorted_score)<20:
                 for q in range(0, len(sorted_score)):
                    (ind, sc) = sorted_score[len(sorted_score)-1-q]
@@ -317,9 +312,7 @@ else:
                 for q in range(0, 20):
                    (ind, sc) = sorted_score[len(sorted_score)-1-q]
                    list_mul.update({ind:sc})
-            print(list_mul)
     
-    print('here3')
     score = collections.OrderedDict()
    # for key, value in list_mul.items():
    #     sorted_score = sorted(score.items(), key=operator.itemgetter(1))
@@ -333,8 +326,18 @@ else:
         for q in range(0, 15):
             (ind, sc) = sorted_score[len(sorted_score)-1-q]
             score.update({ind:sc})
-    print(score)
-    print(sorted(score.items(), key=operator.itemgetter(1)))
+    score = sorted(score.items(), key=operator.itemgetter(1))
+    for i in range(len(score)):
+        print(i+1)
+        (ind, sc) = score[len(score)-1-i]
+        tit = full_list[int(ind)].get('Title')
+        id_doc = full_list[int(ind)].get('ID')
+        if tit is not None:
+            print(" ".join(str(x) for x in tit))
+        print('Author: '+full_list[int(ind)].get('Authors'))
+        print("score: "+ind)
+        print('--------------------------------------------')
+        
     
 print("execution time in seconds: "+ str(time.time()-start))
         
