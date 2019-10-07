@@ -34,14 +34,3 @@ def cosine_similarity(a, b):
     norma = np.linalg.norm(a)
     normb = np.linalg.norm(b)
     return inner/(norma*normb)
-
-
-a = ['i', 'know', 'you', 'know']
-b = ['you', 'know', 'him']
-v =OrderedDict()
-v.update({'him':1})
-v.update({'i':1})
-v.update({'know':2})
-v.update({'you':2})
-print(TFIDF(v, 2, a))
-print(np.linalg.norm([1,1,1]))
