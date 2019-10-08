@@ -31,7 +31,7 @@ def arranger2(input_list, index):
 
 def arranger(input_list, index):
     string = ""
-    while ".N" not in input_list[index]:
+    while ".N" not in input_list[index] or ".K" not in input_list[index] or ".C" not in input_list[index]:
         string = string + input_list[index]
         string = string + " "
         index = index + 1
@@ -329,15 +329,15 @@ else:
     score = sorted(score.items(), key=operator.itemgetter(1))
     for i in range(len(score)):
         print(i+1)
+        id_doc = full_list[int(ind)].get('ID')
+        print("Document ID:"+ id_doc)
         (ind, sc) = score[len(score)-1-i]
         tit = full_list[int(ind)].get('Title')
-        id_doc = full_list[int(ind)].get('ID')
         if tit is not None:
             print(" ".join(str(x) for x in tit))
-        print('Author: '+full_list[int(ind)].get('Authors'))
-        print("score: "+ind)
-        print('--------------------------------------------')
-        
+        print('Author(s): '+full_list[int(ind)].get('Authors'))
+        print("score: "+sc)
+        print('--------------------------------------------') 
     
 print("execution time in seconds: "+ str(time.time()-start))
         

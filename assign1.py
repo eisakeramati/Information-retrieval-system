@@ -21,7 +21,7 @@ def arranger2(input_list, index):
 
 def arranger(input_list, index):
     string = ""
-    while ".N" not in input_list[index]:
+    while ".N" not in input_list[index] or ".K" not in input_list[index] or ".C" not in input_list[index]:
         string = string + input_list[index]
         string = string + " "
         index = index + 1
