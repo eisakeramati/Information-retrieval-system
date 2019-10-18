@@ -21,7 +21,9 @@ def arranger2(input_list, index):
 
 def arranger(input_list, index):
     string = ""
-    while ".N" not in input_list[index] or ".K" not in input_list[index] or ".C" not in input_list[index]:
+    while input_list[index] != ".N\n":
+        if input_list[index] == ".K\n" or input_list[index] == ".C\n":
+            break
         string = string + input_list[index]
         string = string + " "
         index = index + 1
@@ -89,14 +91,14 @@ def main_func(sw, stm):
     full_list = []
     f = open("cacm/cacm.all", "r")
     f_line = f.readlines()
-    f = open("stopwords.txt", "r")
+    f = open("cacm/unwanted.txt", "r")
     set_alph = set()
     f_line2 = f.readlines()
     for i in range (len(f_line2)):
         set_alph.add(f_line2[i][0:len(f_line2[i])-1])
     temp = dict.fromkeys(["ID", "Title", "Abstract", "Date", "Authors"])
     for x in range(len(f_line)):
-        if ".I" in f_line[x]:
+        if ".I " in f_line[x]:
             temp = dict.fromkeys(["ID", "Title", "Abstract", "Date", "Authors"])
             temp['ID'] = f_line[x][2:len(f_line)]
         if ".T" in f_line[x]:
@@ -122,7 +124,12 @@ def main_func(sw, stm):
         if ".B" in f_line[x]:
             temp['Date'] = f_line[x+1][5:len(f_line)]
         if ".A" in f_line[x]:
-            temp['Authors'] = arranger(f_line, x+1)
+            a = gen_tokenizer(arranger(f_line, x+1))
+            while '.' in a:
+                a.remove('.')
+            while ',' in a:
+                a.remove(',')
+            temp['Authors'] = a
         if ".X" in f_line[x]:
             full_list.append(temp)
             
@@ -135,6 +142,7 @@ def main_func(sw, stm):
     for i in range(len(full_list)):
         temp = full_list[i].get('Title')
         temp2 = full_list[i].get('Abstract')
+        temp3 = full_list[i].get('Authors')
         if temp is not None:
             for j in range(len(temp)):
                 if temp[j] not in word_index_list:
@@ -143,7 +151,11 @@ def main_func(sw, stm):
             for j in range(len(temp2)):
                 if temp2[j] not in word_index_list:
                     word_index_list.append(temp2[j])
-    word_index_list.sort() 
+        if temp3 is not None:
+            for j in range(len(temp3)):
+                if temp3[j] not in word_index_list:
+                    word_index_list.append(temp3[j])
+    word_index_list.sort()
     print('first part out')
     posting_list = []
     for i in range(len(word_index_list)):
@@ -170,12 +182,18 @@ def main_func(sw, stm):
             #st = " ".join(str(x) for x in full_list[i].get('Title')) + " ".join(str(x) for x in full_list[i].get('Abstract'))
             st = full_list[i].get('Title')
             st.extend(full_list[i].get('Abstract'))
+            if full_list[i].get('Authors') is not None:
+                st.extend(full_list[i].get('Authors'))
         elif full_list[i].get('Title') is not None and full_list[i].get('Abstract') is None:
            # st = " ".join(str(x) for x in full_list[i].get('Title'))
             st = full_list[i].get('Title')
+            if full_list[i].get('Authors') is not None:
+                st.extend(full_list[i].get('Authors'))
         elif full_list[i].get('Abstract') is not None:
             #st = " ".join(str(x) for x in full_list[i].get('Abstract'))
             st = full_list[i].get('Abstract')
+            if full_list[i].get('Authors') is not None:
+                st.extend(full_list[i].get('Authors'))
         else:
             continue
         stored = []
@@ -198,11 +216,20 @@ def main_func(sw, stm):
                     if len(temp) != 0:
                         posting_list_indiv.append(posting(temp, len(temp), full_list[i].get('ID')))
                         posting_list[word_index_list.index(full_list[i].get('Title')[j])] = posting_list_indiv
+        if full_list[i].get('Authors') is not None:
+            for j in range(len(full_list[i].get('Authors'))):
+                if full_list[i].get('Authors')[j] not in stored:
+                    posting_list_indiv = posting_list[word_index_list.index(full_list[i].get('Authors')[j])]
+                    #temp = position_finder(full_list[i].get('Title')[j], st)
+                    temp = position_finder_list(full_list[i].get('Authors')[j], st)
+                    if len(temp) != 0:
+                        posting_list_indiv.append(posting(temp, len(temp), full_list[i].get('ID')))
+                        posting_list[word_index_list.index(full_list[i].get('Authors')[j])] = posting_list_indiv
     
     ########################################
     #SECTION 3: creating the df dictionary
-    ########################################  
-    print('section 3...')    
+    ########################################
+    print('section 3...')
     dictn = collections.OrderedDict()
     for j in range(len(word_index_list)):
         num = len(posting_list[j])

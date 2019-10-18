@@ -17,6 +17,8 @@ from search import TFIDF
 from search import IDF
 from search import cosine_similarity
 import operator
+from eval import query_file_reader
+from eval import qrels_file_reader 
 
 ########################################
 #SECTION 0: Helping functions and classes
@@ -31,7 +33,9 @@ def arranger2(input_list, index):
 
 def arranger(input_list, index):
     string = ""
-    while ".N" not in input_list[index] or ".K" not in input_list[index] or ".C" not in input_list[index]:
+    while input_list[index] != ".N\n":
+        if input_list[index] == ".K\n" or input_list[index] == ".C\n":
+            break
         string = string + input_list[index]
         string = string + " "
         index = index + 1
@@ -97,14 +101,14 @@ main_func(sw, stm)
 full_list = []
 f = open("cacm/cacm.all", "r")
 f_line = f.readlines()
-f = open("stopwords.txt", "r")
+f = open("cacm/unwanted.txt", "r")
 set_alph = set()
 f_line2 = f.readlines()
 for i in range (len(f_line2)):
     set_alph.add(f_line2[i][0:len(f_line2[i])-1])
 temp = dict.fromkeys(["ID", "Title", "Abstract", "Date", "Authors"])
 for x in range(len(f_line)):
-    if ".I" in f_line[x]:
+    if ".I " in f_line[x]:
         temp = dict.fromkeys(["ID", "Title", "Abstract", "Date", "Authors"])
         temp['ID'] = f_line[x][2:len(f_line)]
     if ".T" in f_line[x]:
@@ -130,7 +134,12 @@ for x in range(len(f_line)):
     if ".B" in f_line[x]:
         temp['Date'] = f_line[x+1][5:len(f_line)]
     if ".A" in f_line[x]:
-        temp['Authors'] = arranger(f_line, x+1)
+        a = gen_tokenizer(arranger(f_line, x+1))
+        while '.' in a:
+            a.remove('.')
+        while ',' in a:
+            a.remove(',')
+        temp['Authors'] = a
     if ".X" in f_line[x]:
         full_list.append(temp)
 
@@ -149,7 +158,7 @@ with open('dictionary.csv') as csv_file:
                 st = st + row[k]+","
             st = st[0:len(st)-1]
             dict.update({st:row[len(row)-1]})
-if use == '1':
+def first_func(q):
     query = q
     print(query +":")
     if query in dict:
@@ -162,10 +171,7 @@ if use == '1':
                 if key == query:
                     break
                 index = index + int(dict[key])*2
-                
-        ########################################
-        #SECTION 3: output construction
-        ######################################## 
+    
         flag = index + int(dict[key])*2
         while index < flag:
             doc_num = str(int(disconnector(f_line[index]))-1)
@@ -268,14 +274,20 @@ if use == '1':
             index = index + 2
     else:
         print('This term is not present in the documents.')
-else: 
-    words = gen_tokenizer(q)
+        
+        
+def second_func(q):
+    words = stopword_remover(q, set_alph)
+    #words = gen_tokenizer(q)
+    print(words)
     idf = IDF(dict, len(full_list))
     a = TFIDF(dict, idf, words)
     list_mul=collections.OrderedDict()
+    doc_list = []
     for i in range (len(words)):
         query = words[i]
         if query in dict:
+            print(query)
             temp_list=[]
             with open('posting_list.txt') as f:
                 index = 0
@@ -290,40 +302,53 @@ else:
                 doc_num = str(int(disconnector(f_line[index]))-1)
                 if doc_num not in temp_list:
                     temp_list.append(doc_num)
+                   # print(doc_num)
                 index = index + 2
             temp_score={}
-            for j in range (len(temp_list)):
+            print('here0')
+            print(query)
+            print(temp_list)
+            count = len(temp_list)
+            if count>15:
+                count = 15
+            for j in range (count):
                 body=[]
                 if full_list[int(temp_list[j])].get('Title') is not None and full_list[int(temp_list[j])].get('Abstract') is not None:
                     body = full_list[int(temp_list[j])].get('Title') + full_list[int(temp_list[j])].get('Abstract')
+                    if full_list[int(temp_list[j])].get('Authors') is not None:
+                        body = body + full_list[int(temp_list[j])].get('Authors') 
                 if full_list[int(temp_list[j])].get('Title') is not None and full_list[int(temp_list[j])].get('Abstract') is None:
                     body = full_list[int(temp_list[j])].get('Title')
+                    if full_list[int(temp_list[j])].get('Authors') is not None:
+                        body = body + full_list[int(temp_list[j])].get('Authors') 
                 else:
                     body = full_list[int(temp_list[j])].get('Abstract')
+                    if full_list[int(temp_list[j])].get('Authors') is not None:
+                        body = body + full_list[int(temp_list[j])].get('Authors') 
                 b = TFIDF(dict, idf, body)
                 sim = cosine_similarity(a, b)
+                print(sim)
+                print(full_list[int(temp_list[j])].get('ID'))
                 temp_score.update({temp_list[j]:sim})
+            print('here')
             sorted_score = sorted(temp_score.items(), key=operator.itemgetter(1))
-            if len(sorted_score)<20:
+            if len(sorted_score)<30:
                 for q in range(0, len(sorted_score)):
                    (ind, sc) = sorted_score[len(sorted_score)-1-q]
                    list_mul.update({ind:sc})
             else:
-                for q in range(0, 20):
+                for q in range(0, 30):
                    (ind, sc) = sorted_score[len(sorted_score)-1-q]
                    list_mul.update({ind:sc})
     
     score = collections.OrderedDict()
-   # for key, value in list_mul.items():
-   #     sorted_score = sorted(score.items(), key=operator.itemgetter(1))
-  #  print(sorted_score[len(sorted_score)-15:len(sorted_score)])
     sorted_score = sorted(list_mul.items(), key=operator.itemgetter(1))
-    if len(sorted_score)<15:
+    if len(sorted_score)<30:
         for q in range(0, len(sorted_score)):
             (ind, sc) = sorted_score[len(sorted_score)-1-q]
             score.update({ind:sc})
     else:
-        for q in range(0, 15):
+        for q in range(0, 30):
             (ind, sc) = sorted_score[len(sorted_score)-1-q]
             score.update({ind:sc})
     score = sorted(score.items(), key=operator.itemgetter(1))
@@ -331,14 +356,24 @@ else:
         print(i+1)
         id_doc = full_list[int(ind)].get('ID')
         print("Document ID:"+ id_doc)
+        doc_list.append(id_doc)
         (ind, sc) = score[len(score)-1-i]
         tit = full_list[int(ind)].get('Title')
         if tit is not None:
             print(" ".join(str(x) for x in tit))
-        print('Author(s): '+full_list[int(ind)].get('Authors'))
-        print("score: "+sc)
-        print('--------------------------------------------') 
-    
+        if full_list[int(ind)].get('Authors') is not None:
+            print('Author(s): ')
+            for k in range(len(full_list[int(ind)].get('Authors'))):
+                print(full_list[int(ind)].get('Authors')[k])
+        print("score: "+str(sc))
+        print('--------------------------------------------')
+    return doc_list
+
+queries = query_file_reader()
+qrels = qrels_file_reader()
+list_query = second_func(queries[1])
+print(qrels[1])
+print(list_query)
 print("execution time in seconds: "+ str(time.time()-start))
         
 
