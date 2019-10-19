@@ -19,6 +19,8 @@ from search import cosine_similarity
 import operator
 from eval import query_file_reader
 from eval import qrels_file_reader 
+from eval import recall 
+from eval import precision 
 
 ########################################
 #SECTION 0: Helping functions and classes
@@ -48,6 +50,20 @@ def stopword_remover(string, sett):
     for w in word_tokens: 
         if w not in sett: 
             filtered_sentence.append(w) 
+    return filtered_sentence
+
+def stopword_remover2(string, sett, cont):
+    string = string.lower()
+    ps = PorterStemmer()
+    word_tokens = word_tokenize(string)
+    filtered_sentence = []
+    for w in word_tokens: 
+        if w not in sett: 
+            if cont=='y':
+                print(w)
+                filtered_sentence.append(ps.stem(w)) 
+            else:
+                filtered_sentence.append(w) 
     return filtered_sentence
 
 def stemmer(input_list):
@@ -97,7 +113,7 @@ if cons=='y':
 sw = raw_input("Do you want stop word removal(y/n): ")
 stm = raw_input("Do you want stemming(y/n): ") 
 start = time.time()
-main_func(sw, stm)
+#main_func(sw, stm)
 full_list = []
 f = open("cacm/cacm.all", "r")
 f_line = f.readlines()
@@ -139,7 +155,10 @@ for x in range(len(f_line)):
             a.remove('.')
         while ',' in a:
             a.remove(',')
-        temp['Authors'] = a
+        if stm == 'y':
+            temp['Authors'] = stemmer(a) 
+        else:
+            temp['Authors'] = a
     if ".X" in f_line[x]:
         full_list.append(temp)
 
@@ -276,15 +295,21 @@ def first_func(q):
         print('This term is not present in the documents.')
         
         
-def second_func(q):
-    words = stopword_remover(q, set_alph)
+def second_func(q, cont):
+    
+    words = stopword_remover2(q, set_alph, cont)
     #words = gen_tokenizer(q)
     print(words)
     idf = IDF(dict, len(full_list))
     a = TFIDF(dict, idf, words)
     list_mul=collections.OrderedDict()
     doc_list = []
+    seen=[]
     for i in range (len(words)):
+        if words[i] in seen:
+            break
+        else:
+            seen.append(words[i])
         query = words[i]
         if query in dict:
             print(query)
@@ -309,9 +334,9 @@ def second_func(q):
             print(query)
             print(temp_list)
             count = len(temp_list)
-            if count>15:
+            if len(temp_list)>15:
                 count = 15
-            for j in range (count):
+            for j in range (len(temp_list)):
                 body=[]
                 if full_list[int(temp_list[j])].get('Title') is not None and full_list[int(temp_list[j])].get('Abstract') is not None:
                     body = full_list[int(temp_list[j])].get('Title') + full_list[int(temp_list[j])].get('Abstract')
@@ -343,12 +368,12 @@ def second_func(q):
     
     score = collections.OrderedDict()
     sorted_score = sorted(list_mul.items(), key=operator.itemgetter(1))
-    if len(sorted_score)<30:
+    if len(sorted_score)<25:
         for q in range(0, len(sorted_score)):
             (ind, sc) = sorted_score[len(sorted_score)-1-q]
             score.update({ind:sc})
     else:
-        for q in range(0, 30):
+        for q in range(0, 25):
             (ind, sc) = sorted_score[len(sorted_score)-1-q]
             score.update({ind:sc})
     score = sorted(score.items(), key=operator.itemgetter(1))
@@ -369,11 +394,13 @@ def second_func(q):
         print('--------------------------------------------')
     return doc_list
 
-queries = query_file_reader()
+queries = query_file_reader(0)
 qrels = qrels_file_reader()
-list_query = second_func(queries[1])
-print(qrels[1])
+list_query = second_func(queries[39], cons)
+print(qrels[39])
 print(list_query)
+print(str(recall(list_query, qrels[39]))+' percent')
+print(str(precision(list_query, qrels[39])) +' percent')
 print("execution time in seconds: "+ str(time.time()-start))
         
 

@@ -129,7 +129,10 @@ def main_func(sw, stm):
                 a.remove('.')
             while ',' in a:
                 a.remove(',')
-            temp['Authors'] = a
+            if stm == 'y':
+                temp['Authors'] = stemmer(a) 
+            else:
+                temp['Authors'] = a
         if ".X" in f_line[x]:
             full_list.append(temp)
             
