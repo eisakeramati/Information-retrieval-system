@@ -21,6 +21,8 @@ from eval import query_file_reader
 from eval import qrels_file_reader 
 from eval import recall 
 from eval import precision 
+from eval import R_prec
+from eval import AP_finder
 
 ########################################
 #SECTION 0: Helping functions and classes
@@ -336,7 +338,7 @@ def second_func(q, cont):
             count = len(temp_list)
             if len(temp_list)>15:
                 count = 15
-            for j in range (len(temp_list)):
+            for j in range (count):
                 body=[]
                 if full_list[int(temp_list[j])].get('Title') is not None and full_list[int(temp_list[j])].get('Abstract') is not None:
                     body = full_list[int(temp_list[j])].get('Title') + full_list[int(temp_list[j])].get('Abstract')
@@ -401,6 +403,8 @@ print(qrels[39])
 print(list_query)
 print(str(recall(list_query, qrels[39]))+' percent')
 print(str(precision(list_query, qrels[39])) +' percent')
+print(R_prec(list_query, qrels[39]))
+print(AP_finder(list_query, qrels[39]))
 print("execution time in seconds: "+ str(time.time()-start))
         
 

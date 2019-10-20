@@ -61,6 +61,21 @@ def recall(list1, list2):
 def precision(list1, list2):
     return (len(intersection(list1, list2))*100/len(list1))
 
+def AP_finder(list1, list2):
+    num = 0.0
+    count = 0.0
+    for i in range(len(list1)):
+        if str(int(list1[i])) in list2:
+            count  = count + 1
+            num = num + (count/float(i+1))
+    return (num / len(list2))
+
+def R_prec(list1, list2):
+    sum = 0.0 
+    for i in range(len(list2)):
+        if str(int(list1[i])) in list2:
+            sum = sum + 1
+    return sum/float(len(list2))
 
 
 
