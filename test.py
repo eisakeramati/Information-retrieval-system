@@ -332,9 +332,6 @@ def second_func(q, cont):
                    # print(doc_num)
                 index = index + 2
             temp_score={}
-            print('here0')
-            print(query)
-            print(temp_list)
             count = len(temp_list)
             if len(temp_list)>15:
                 count = 15
@@ -354,10 +351,7 @@ def second_func(q, cont):
                         body = body + full_list[int(temp_list[j])].get('Authors') 
                 b = TFIDF(dict, idf, body)
                 sim = cosine_similarity(a, b)
-                print(sim)
-                print(full_list[int(temp_list[j])].get('ID'))
                 temp_score.update({temp_list[j]:sim})
-            print('here')
             sorted_score = sorted(temp_score.items(), key=operator.itemgetter(1))
             if len(sorted_score)<30:
                 for q in range(0, len(sorted_score)):
