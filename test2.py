@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Sep 20 08:51:23 2019
+Created on Mon Oct 21 22:25:58 2019
 
 @author: eisak
 """
@@ -13,9 +13,9 @@ from colorama import Style
 from colorama import Back
 from assign1 import main_func
 import time
-from search import TFIDF
-from search import IDF
-from search import cosine_similarity
+from search2 import TFIDF
+from search2 import IDF
+from search2 import cosine_similarity
 import operator
 from eval import query_file_reader
 from eval import qrels_file_reader 
@@ -107,7 +107,10 @@ use = raw_input("Which mode are you using(1/2): ")
 if use == '1':
     q = raw_input("Enter a word: ")
 else:
-    q = raw_input("Enter a phrase: ")
+    acc = raw_input("what speed and recall do you want?(low speed, high recall:2, high speed, low recall:1): ")
+    mod = raw_input("mode 1 or 2?(1:individual query 2:MAP for a group of queries): ")
+    if mod == '1':
+        q = raw_input("Enter the document number: ")     
 cons = raw_input("Do you want your query to be stemmed(y/n): ") 
 if cons=='y':
     ps = PorterStemmer()
@@ -302,6 +305,8 @@ def second_func(q, cont):
     words = stopword_remover2(q, set_alph, cont)
     #words = gen_tokenizer(q)
     print(words)
+    idf = IDF(dict, len(full_list))
+    a = TFIDF(dict, idf, words)
     list_mul=collections.OrderedDict()
     doc_list = []
     seen=[]
@@ -331,9 +336,10 @@ def second_func(q, cont):
                 index = index + 2
             temp_score={}
             count = len(temp_list)
-            if len(temp_list)>15:
-                count = 15
-            for j in range (len(temp_list)):
+            if acc == '1':
+                if len(temp_list)>15:
+                    count = 15
+            for j in range (count):
                 body=[]
                 if full_list[int(temp_list[j])].get('Title') is not None and full_list[int(temp_list[j])].get('Abstract') is not None:
                     body = full_list[int(temp_list[j])].get('Title') + full_list[int(temp_list[j])].get('Abstract')
@@ -346,8 +352,8 @@ def second_func(q, cont):
                 else:
                     body = full_list[int(temp_list[j])].get('Abstract')
                     if full_list[int(temp_list[j])].get('Authors') is not None:
-                        body = body + full_list[int(temp_list[j])].get('Authors')
-                (a,b) = TFIDF(dict, body, words, len(full_list))
+                        body = body + full_list[int(temp_list[j])].get('Authors') 
+                b = TFIDF(dict, idf, body)
                 sim = cosine_similarity(a, b)
                 temp_score.update({temp_list[j]:sim})
             sorted_score = sorted(temp_score.items(), key=operator.itemgetter(1))
@@ -390,15 +396,27 @@ def second_func(q, cont):
 
 queries = query_file_reader(0)
 qrels = qrels_file_reader()
-list_query = second_func(queries[39], cons)
-print(qrels[39])
-print(list_query)
-print(str(recall(list_query, qrels[39]))+' percent')
-print(str(precision(list_query, qrels[39])) +' percent')
-print(R_prec(list_query, qrels[39]))
-print(AP_finder(list_query, qrels[39]))
-print("execution time in seconds: "+ str(time.time()-start))
-        
-
-        
-        
+if mod == '1':
+    list_query = second_func(queries[int(q)-1], cons)
+    print(qrels[int(q)-1])
+    print(list_query)
+    print(str(recall(list_query, qrels[int(q)-1]))+' percent')
+    print(str(precision(list_query, qrels[int(q)-1])) +' percent')
+    print(R_prec(list_query, qrels[int(q)-1]))
+    print(AP_finder(list_query, qrels[int(q)-1]))
+    print("execution time in seconds: "+ str(time.time()-start))
+else:
+    APs = []
+    for i in range(4):
+        list_query = second_func(queries[i], cons)
+        print(qrels[i])
+        print(list_query)
+        print(str(recall(list_query, qrels[i]))+' percent')
+        print(str(precision(list_query, qrels[i])) +' percent')
+        print(R_prec(list_query, qrels[i]))
+        ap = AP_finder(list_query, qrels[i])
+        APs.append(ap)
+        print(ap)
+        print("execution time in seconds: "+ str(time.time()-start))
+    print('The AP value is below:')
+    print(sum(APs)/len(APs))
