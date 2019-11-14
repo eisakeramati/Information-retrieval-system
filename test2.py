@@ -35,6 +35,30 @@ def arranger2(input_list, index):
         index = index + 1
     return string
 
+def arranger_graph(input_list, index):
+    res = []
+    while ".I" not in input_list[index]:
+        if "\t4\t" not in input_list[index]:     
+            if "\t6\t" not in input_list[index]:
+                temp = extracter(input_list[index])
+                if temp is not None:
+                    res.append(temp)
+            else:
+                break
+        index = index + 1
+    return res
+
+def extracter(in_s):
+#    print(in_s)
+#    print(len(in_s))
+    temp = in_s.split("\t5\t")
+#    print(temp)
+#    print(str(int(temp[0])))
+    if int(temp[0]) != int(temp[1]):
+        return str(int(temp[0]))
+    else:
+        return None
+
 def arranger(input_list, index):
     string = ""
     while input_list[index] != ".N\n":
@@ -104,22 +128,26 @@ def inside_word(string, doc):
 #SECTION 1: reading the corpus
 ########################################
 use = raw_input("Which mode are you using(1/2): ")
+mod =""
+acc=""
+q=""
 if use == '1':
     q = raw_input("Enter a word: ")
 else:
     acc = raw_input("what speed and recall do you want?(low speed, high recall:2, high speed, low recall:1): ")
     mod = raw_input("mode 1 or 2?(1:individual query 2:MAP for a group of queries): ")
     if mod == '1':
-        q = raw_input("Enter the document number: ")     
-cons = raw_input("Do you want your query to be stemmed(y/n): ") 
+        q = raw_input("Enter the document number: ")
+cons = raw_input("Do you want your query to be stemmed(y/n): ")
 if cons=='y':
     ps = PorterStemmer()
     q = ps.stem(q)
 sw = raw_input("Do you want stop word removal(y/n): ")
 stm = raw_input("Do you want stemming(y/n): ") 
 start = time.time()
-#main_func(sw, stm)
+main_func(sw, stm)
 full_list = []
+graph = []
 f = open("cacm/cacm.all", "r")
 f_line = f.readlines()
 f = open("cacm/unwanted.txt", "r")
@@ -165,8 +193,10 @@ for x in range(len(f_line)):
         else:
             temp['Authors'] = a
     if ".X" in f_line[x]:
+        graph.append(arranger_graph(f_line, x+1))
         full_list.append(temp)
-
+    
+print(graph)
 ########################################
 #SECTION 2: reading input files
 ########################################   
@@ -396,27 +426,30 @@ def second_func(q, cont):
 
 queries = query_file_reader(0)
 qrels = qrels_file_reader()
-if mod == '1':
-    list_query = second_func(queries[int(q)-1], cons)
-    print(qrels[int(q)-1])
-    print(list_query)
-    print(str(recall(list_query, qrels[int(q)-1]))+' percent')
-    print(str(precision(list_query, qrels[int(q)-1])) +' percent')
-    print(R_prec(list_query, qrels[int(q)-1]))
-    print(AP_finder(list_query, qrels[int(q)-1]))
-    print("execution time in seconds: "+ str(time.time()-start))
-else:
-    APs = []
-    for i in range(4):
-        list_query = second_func(queries[i], cons)
-        print(qrels[i])
+if use == '2':
+    if mod == '1':
+        list_query = second_func(queries[int(q)-1], cons)
+        print(qrels[int(q)-1])
         print(list_query)
-        print(str(recall(list_query, qrels[i]))+' percent')
-        print(str(precision(list_query, qrels[i])) +' percent')
-        print(R_prec(list_query, qrels[i]))
-        ap = AP_finder(list_query, qrels[i])
-        APs.append(ap)
-        print(ap)
+        print(str(recall(list_query, qrels[int(q)-1]))+' percent')
+        print(str(precision(list_query, qrels[int(q)-1])) +' percent')
+        print(R_prec(list_query, qrels[int(q)-1]))
+        print(AP_finder(list_query, qrels[int(q)-1]))
         print("execution time in seconds: "+ str(time.time()-start))
-    print('The AP value is below:')
-    print(sum(APs)/len(APs))
+    else:
+        APs = []
+        for i in range(len(queries)):
+            list_query = second_func(queries[i], cons)
+            print(qrels[i])
+            print(list_query)
+            print(str(recall(list_query, qrels[i]))+' percent')
+            print(str(precision(list_query, qrels[i])) +' percent')
+            print(R_prec(list_query, qrels[i]))
+            ap = AP_finder(list_query, qrels[i])
+            APs.append(ap)
+            print(ap)
+            print("execution time in seconds: "+ str(time.time()-start))
+        print('The AP value is below:')
+        print(sum(APs)/len(APs))
+else:
+    first_func(q)
