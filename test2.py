@@ -7,6 +7,7 @@ Created on Mon Oct 21 22:25:58 2019
 
 import collections
 import csv
+import numpy as np
 from nltk.stem import PorterStemmer
 from nltk.tokenize import word_tokenize
 from colorama import Style
@@ -23,6 +24,8 @@ from eval import recall
 from eval import precision 
 from eval import R_prec
 from eval import AP_finder
+from pageRank import TP_matrix
+from pageRank import convergence
 
 ########################################
 #SECTION 0: Helping functions and classes
@@ -124,6 +127,18 @@ def inside_word(string, doc):
             return doc.index(item)
     return -1
 
+def normalize_dict(input_dict):
+    print(input_dict)
+    #M = input_dict.get(max(input_dict.iteritems(), key=operator.itemgetter(1))[0])
+    #m = input_dict.get(min(input_dict.iteritems(), key=operator.itemgetter(1))[0])
+    M = input_dict.get(max(input_dict.keys(), key=(lambda k: input_dict[k])))
+    m = input_dict.get(min(input_dict.keys(), key=(lambda k: input_dict[k])))
+    for key, value in input_dict.items():
+        temp = (float(value) - float(m))/(float(M)-float(m))
+        print(str(temp)+"  temp")
+        input_dict.update({key:temp})
+    return input_dict
+
 ########################################
 #SECTION 1: reading the corpus
 ########################################
@@ -143,9 +158,9 @@ if cons=='y':
     ps = PorterStemmer()
     q = ps.stem(q)
 sw = raw_input("Do you want stop word removal(y/n): ")
-stm = raw_input("Do you want stemming(y/n): ") 
+stm = raw_input("Do you want stemming (y/n): ")
 start = time.time()
-main_func(sw, stm)
+#main_func(sw, stm)
 full_list = []
 graph = []
 f = open("cacm/cacm.all", "r")
@@ -196,7 +211,9 @@ for x in range(len(f_line)):
         graph.append(arranger_graph(f_line, x+1))
         full_list.append(temp)
     
-print(graph)
+tpm = TP_matrix(graph, 0.2)
+pageRank = convergence(tpm)
+print(len(pageRank[0]))
 ########################################
 #SECTION 2: reading input files
 ########################################   
@@ -384,7 +401,7 @@ def second_func(q, cont):
                     if full_list[int(temp_list[j])].get('Authors') is not None:
                         body = body + full_list[int(temp_list[j])].get('Authors') 
                 b = TFIDF(dict, idf, body)
-                sim = cosine_similarity(a, b)
+                sim = cosine_similarity( a, b)
                 temp_score.update({temp_list[j]:sim})
             sorted_score = sorted(temp_score.items(), key=operator.itemgetter(1))
             if len(sorted_score)<30:
@@ -398,14 +415,23 @@ def second_func(q, cont):
     
     score = collections.OrderedDict()
     sorted_score = sorted(list_mul.items(), key=operator.itemgetter(1))
+    rank_list={}
     if len(sorted_score)<25:
         for q in range(0, len(sorted_score)):
             (ind, sc) = sorted_score[len(sorted_score)-1-q]
-            score.update({ind:sc})
+            rank_list.update({ind:pageRank[0][int(ind)]})
+        rank_list = normalize_dict(rank_list)
+        for q in range(0, len(sorted_score)):
+            (ind, sc) = sorted_score[len(sorted_score)-1-q]
+            score.update({ind:(0.6)*sc + (0.4)*float(rank_list.get(ind))})
     else:
         for q in range(0, 25):
             (ind, sc) = sorted_score[len(sorted_score)-1-q]
-            score.update({ind:sc})
+            rank_list.update({ind:pageRank[0][int(ind)]})
+        rank_list = normalize_dict(rank_list)
+        for q in range(0, 25):
+            (ind, sc) = sorted_score[len(sorted_score)-1-q]
+            score.update({ind:(0.6)*sc + (0.4)*float(rank_list.get(ind))})
     score = sorted(score.items(), key=operator.itemgetter(1))
     for i in range(len(score)):
         print(i+1)
